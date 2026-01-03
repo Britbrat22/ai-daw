@@ -1,0 +1,6 @@
+/* Main DAW Layout */
+.daw-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: linear-gradient(135deg
