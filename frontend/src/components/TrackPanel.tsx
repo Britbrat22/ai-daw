@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import type { Track } from "../types";
 
 export default function TrackPanel(props: {
@@ -11,32 +11,54 @@ export default function TrackPanel(props: {
 }) {
   const { tracks, onAddFiles, onRecord, isRecording, onUpdate, onRemove } = props;
 
+  const fileRef = useRef<HTMLInputElement | null>(null);
+
   return (
     <div className="panel">
       <div className="h2">Tracks</div>
 
-      <div className="row" style={{ marginBottom: 10 }}>
-        <label>
-          <input
-            type="file"
-            accept="audio/*"
-            multiple
-            style={{ display: "none" }}
-            onChange={(e) => {
-              if (e.target.files) onAddFiles(e.target.files);
-              e.currentTarget.value = "";
-            }}
-          />
-          <span><button className="secondary">Import Audio</button></span>
-        </label>
+      {/* IMPORTANT: do NOT use display:none on iOS */}
+      <input
+        ref={fileRef}
+        type="file"
+        accept="audio/*"
+        multiple
+        style={{
+          position: "absolute",
+          left: "-9999px",
+          width: "1px",
+          height: "1px",
+          opacity: 0
+        }}
+        onChange={(e) => {
+          if (e.target.files && e.target.files.length > 0) {
+            onAddFiles(e.target.files);
+          }
+          // allow picking same file again
+          e.currentTarget.value = "";
+        }}
+      />
 
-        <button onClick={onRecord} className={isRecording ? "danger" : ""}>
+      <div className="row" style={{ marginBottom: 10 }}>
+        <button
+          className="secondary"
+          type="button"
+          onClick={() => fileRef.current?.click()}
+        >
+          Import Audio
+        </button>
+
+        <button
+          type="button"
+          onClick={onRecord}
+          className={isRecording ? "danger" : ""}
+        >
           {isRecording ? "Stop Rec" : "Record"}
         </button>
       </div>
 
       {tracks.length === 0 && (
-        <div className="small">Import vocals / beats. Then mixdown + master.</div>
+        <div className="small">Tap “Import Audio” to select files from your phone.</div>
       )}
 
       {tracks.map((t) => (
@@ -46,17 +68,21 @@ export default function TrackPanel(props: {
               <div style={{ fontWeight: 700 }}>{t.name}</div>
               <div className="small mono">{t.fileName ?? "—"}</div>
             </div>
-            <button className="danger" onClick={() => onRemove(t.id)}>X</button>
+            <button className="danger" type="button" onClick={() => onRemove(t.id)}>
+              X
+            </button>
           </div>
 
           <div className="row" style={{ marginTop: 8, gap: 8 }}>
             <button
+              type="button"
               className={t.muted ? "danger" : "secondary"}
               onClick={() => onUpdate(t.id, { muted: !t.muted })}
             >
               Mute
             </button>
             <button
+              type="button"
               className={t.solo ? "" : "secondary"}
               onClick={() => onUpdate(t.id, { solo: !t.solo })}
             >
